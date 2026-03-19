@@ -1,5 +1,7 @@
 import os
-from datetime import datetime
+import random
+import time
+from datetime import datetime, timedelta, timezone
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
 
@@ -9,13 +11,20 @@ PORTAL_URL = os.getenv("PORTAL_URL")
 EMAIL = os.getenv("EMAIL")
 PASSWORD = os.getenv("PASSWORD")
 
+# ---- PH TIMEZONE ----
+PH_TIMEZONE = timezone(timedelta(hours=8))
+
+
+def now_ph():
+    return datetime.now(PH_TIMEZONE)
+
 
 def is_today(text):
     if not text or "N/A" in text:
         return False
     try:
         dt = datetime.strptime(text.strip(), "%B %d, %Y %I:%M %p")
-        return dt.date() == datetime.now().date()
+        return dt.date() == now_ph().date()
     except:
         return False
 
@@ -58,7 +67,7 @@ with sync_playwright() as p:
     print("Check-In:", check_in)
     print("Check-Out:", check_out)
 
-    now = datetime.now()
+    now = now_ph()
     hour = now.hour
 
     is_morning = 7 <= hour < 12
@@ -67,20 +76,35 @@ with sync_playwright() as p:
     has_checkin_today = is_today(check_in)
     has_checkout_today = is_today(check_out)
 
+    print("Current PH Time:", now.strftime("%Y-%m-%d %H:%M:%S"))
+
     # ---- DECISION ----
     should_click = False
+    delay_seconds = 0
 
     if not has_checkin_today and is_morning:
         print("Action: CHECK-IN")
         should_click = True
+        delay_seconds = random.randint(0, 30 * 60)
+
     elif has_checkin_today and not has_checkout_today and is_evening:
         print("Action: CHECK-OUT")
         should_click = True
+        delay_seconds = random.randint(0, 30 * 60)
+
     else:
         print("Action: SKIP")
 
-    # ---- CLICK BUTTON SAFELY ----
+    # ---- EXTRA SAFETY GUARD ----
+    if not (is_morning or is_evening):
+        print("Outside allowed time window → FORCE SKIP")
+        should_click = False
+
+    # ---- CLICK BUTTON ----
     if should_click:
+        print(f"Delaying for {delay_seconds // 60} minutes...")
+        time.sleep(delay_seconds)
+
         button = page.locator('button:has-text("Check")')
         button.wait_for(timeout=10000)
 

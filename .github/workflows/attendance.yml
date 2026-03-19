@@ -2,8 +2,8 @@ name: WFH Attendance Automation
 
 on:
   schedule:
-    - cron: '5 23 * * 0-4'
-    - cron: '35 9 * * 1-5'
+    - cron: '0 23 * * 0-4'   # 7:00 AM PH
+    - cron: '30 9 * * 1-5'   # 5:30 PM PH
   workflow_dispatch:
 
 jobs:
