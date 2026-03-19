@@ -1,0 +1,32 @@
+name: WFH Attendance Automation
+
+on:
+  schedule:
+    - cron: '5 23 * * 0-4'
+    - cron: '35 9 * * 1-5'
+  workflow_dispatch:
+
+jobs:
+  run-script:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          playwright install --with-deps
+
+      - name: Run script
+        env:
+          PORTAL_URL: ${{ secrets.PORTAL_URL }}
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+        run: python main.py
