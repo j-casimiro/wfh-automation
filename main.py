@@ -1,6 +1,4 @@
 import os
-import random
-import time
 from datetime import datetime, timedelta, timezone
 from playwright.sync_api import sync_playwright
 from dotenv import load_dotenv
@@ -22,10 +20,22 @@ def now_ph():
 def is_today(text):
     if not text or "N/A" in text:
         return False
+
     try:
-        dt = datetime.strptime(text.strip(), "%B %d, %Y %I:%M %p")
+        # normalize text (remove "at")
+        cleaned = text.replace("at", "").strip()
+
+        # try with seconds first
+        try:
+            dt = datetime.strptime(cleaned, "%B %d, %Y %I:%M:%S %p")
+        except:
+            # fallback without seconds
+            dt = datetime.strptime(cleaned, "%B %d, %Y %I:%M %p")
+
         return dt.date() == now_ph().date()
-    except:
+
+    except Exception as e:
+        print("Date parse failed:", text)
         return False
 
 
@@ -80,17 +90,14 @@ with sync_playwright() as p:
 
     # ---- DECISION ----
     should_click = False
-    delay_seconds = 0
 
     if not has_checkin_today and is_morning:
         print("Action: CHECK-IN")
         should_click = True
-        delay_seconds = random.randint(0, 30 * 60)
 
     elif has_checkin_today and not has_checkout_today and is_evening:
         print("Action: CHECK-OUT")
         should_click = True
-        delay_seconds = random.randint(0, 30 * 60)
 
     else:
         print("Action: SKIP")
@@ -102,9 +109,6 @@ with sync_playwright() as p:
 
     # ---- CLICK BUTTON ----
     if should_click:
-        print(f"Delaying for {delay_seconds // 60} minutes...")
-        time.sleep(delay_seconds)
-
         button = page.locator('button:has-text("Check")')
         button.wait_for(timeout=10000)
 
