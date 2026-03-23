@@ -20,13 +20,15 @@ def now_ph():
 
 
 def is_today(text):
-    if not text or "N/A" in text:
+    if not text or "n/a" in text.lower():
         return False
-    try:
-        dt = datetime.strptime(text.strip(), "%B %d, %Y %I:%M %p")
-        return dt.date() == now_ph().date()
-    except:
-        return False
+    for fmt in ("%B %d, %Y at %I:%M:%S %p", "%B %d, %Y %I:%M:%S %p", "%B %d, %Y at %I:%M %p", "%B %d, %Y %I:%M %p"):
+        try:
+            dt = datetime.strptime(text.strip(), fmt)
+            return dt.date() == now_ph().date()
+        except:
+            continue
+    return False
 
 
 def extract_value(body, label):
