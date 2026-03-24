@@ -22,10 +22,9 @@ def is_today(text):
         return False
     for fmt in ("%B %d, %Y at %I:%M:%S %p", "%B %d, %Y %I:%M:%S %p", "%B %d, %Y at %I:%M %p", "%B %d, %Y %I:%M %p"):
         try:
+            # Browser context is set to Asia/Manila, so the site always displays PH time
             dt = datetime.strptime(text.strip(), fmt)
-            # Site displays timestamps in UTC; convert to PH time before comparing
-            dt_ph = dt.replace(tzinfo=timezone.utc).astimezone(PH_TIMEZONE)
-            return dt_ph.date() == now_ph().date()
+            return dt.date() == now_ph().date()
         except:
             continue
     print("Date parse failed:", text)
@@ -41,7 +40,10 @@ def extract_value(body, label):
 
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
-    page = browser.new_page()
+    # Force PH timezone so the site always renders timestamps in PH time,
+    # regardless of the server timezone (GitHub Actions uses UTC)
+    context = browser.new_context(timezone_id="Asia/Manila")
+    page = context.new_page()
 
     # ---- OPEN PAGE ----
     page.goto(PORTAL_URL, wait_until="networkidle")
@@ -108,4 +110,5 @@ with sync_playwright() as p:
         button.click()
         print("Clicked button")
 
+    context.close()
     browser.close()
