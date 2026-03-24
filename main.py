@@ -23,7 +23,9 @@ def is_today(text):
     for fmt in ("%B %d, %Y at %I:%M:%S %p", "%B %d, %Y %I:%M:%S %p", "%B %d, %Y at %I:%M %p", "%B %d, %Y %I:%M %p"):
         try:
             dt = datetime.strptime(text.strip(), fmt)
-            return dt.date() == now_ph().date()
+            # Site displays timestamps in UTC; convert to PH time before comparing
+            dt_ph = dt.replace(tzinfo=timezone.utc).astimezone(PH_TIMEZONE)
+            return dt_ph.date() == now_ph().date()
         except:
             continue
     print("Date parse failed:", text)
