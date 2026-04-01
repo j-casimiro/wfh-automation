@@ -46,7 +46,7 @@ with sync_playwright() as p:
     page = context.new_page()
 
     # ---- OPEN PAGE ----
-    page.goto(PORTAL_URL, wait_until="networkidle")
+    page.goto(PORTAL_URL, wait_until="domcontentloaded")
 
     # ---- LOGIN IF NEEDED ----
     if "login" in page.url or page.locator('input[name="email"]').count() > 0:
@@ -58,7 +58,7 @@ with sync_playwright() as p:
         with page.expect_navigation():
             page.click('button[type="submit"]')
 
-        page.goto(PORTAL_URL, wait_until="networkidle")
+        page.goto(PORTAL_URL, wait_until="domcontentloaded")
 
     # ---- WAIT FOR MAIN CONTENT ----
     page.wait_for_selector("text=Attendance History", timeout=15000)
