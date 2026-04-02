@@ -47,6 +47,7 @@ with sync_playwright() as p:
 
     # ---- OPEN PAGE ----
     page.goto(PORTAL_URL, wait_until="domcontentloaded")
+    page.wait_for_load_state("networkidle", timeout=60000)
 
     # ---- LOGIN IF NEEDED ----
     if "login" in page.url or page.locator('input[name="email"]').count() > 0:
@@ -59,9 +60,10 @@ with sync_playwright() as p:
             page.click('button[type="submit"]')
 
         page.goto(PORTAL_URL, wait_until="domcontentloaded")
+        page.wait_for_load_state("networkidle", timeout=60000)
 
     # ---- WAIT FOR MAIN CONTENT ----
-    page.wait_for_selector("text=Attendance History", timeout=15000)
+    page.wait_for_selector("text=Last Check-In:", timeout=20000)
 
     # ---- EXTRACT ATTENDANCE ----
     body = page.inner_text("body")
