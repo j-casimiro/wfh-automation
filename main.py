@@ -77,7 +77,7 @@ with sync_playwright() as p:
     now = now_ph()
     hour = now.hour
 
-    is_morning = 7 <= hour < 12
+    is_morning = 6 <= hour < 12
     is_evening = 17 <= hour < 22
 
     has_checkin_today = is_today(check_in)
