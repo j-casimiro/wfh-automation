@@ -2,8 +2,8 @@ name: WFH Attendance Automation
 
 on:
   schedule:
-    - cron: '00 22 * * 0-4' # 6:00 AM PH (targets <7:00 AM with ~45min GH delay)
-    - cron: '45 8 * * 1-5' # 4:45 PM PH (targets 4:30 PM with ~45min GH delay)
+    - cron: '12 22 * * 0-4' # 6:12 AM PH (off-peak to minimize GitHub Actions delays)
+    - cron: '08 9 * * 1-5'  # 5:08 PM PH (off-peak to minimize GitHub Actions delays)
   workflow_dispatch:
 
 jobs:
