@@ -60,7 +60,7 @@ with sync_playwright() as p:
 
     # ---- WAIT FOR PAGE INITIALIZATION ----
     # Wait up to 2 minutes for the page to render either the login screen or the dashboard
-    page.wait_for_selector('input[name="email"], text="Last Check-In:"', timeout=120000)
+    page.locator('input[name="email"]').or_(page.locator('text="Last Check-In:"')).wait_for(timeout=120000)
 
     # ---- LOGIN IF NEEDED ----
     if page.locator('input[name="email"]').count() > 0:
