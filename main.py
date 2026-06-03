@@ -38,6 +38,13 @@ def extract_value(body, label):
     return ""
 
 
+def wait_for_network_idle_safely(page, timeout=10000):
+    try:
+        page.wait_for_load_state("networkidle", timeout=timeout)
+    except Exception as e:
+        print(f"Network idle timeout of {timeout}ms exceeded. Continuing: {e}")
+
+
 with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
     # Force PH timezone so the site always renders timestamps in PH time,
@@ -47,7 +54,7 @@ with sync_playwright() as p:
 
     # ---- OPEN PAGE ----
     page.goto(PORTAL_URL, wait_until="domcontentloaded")
-    page.wait_for_load_state("networkidle", timeout=60000)
+    wait_for_network_idle_safely(page, 10000)
 
     # ---- LOGIN IF NEEDED ----
     if "login" in page.url or page.locator('input[name="email"]').count() > 0:
@@ -60,10 +67,10 @@ with sync_playwright() as p:
             page.click('button[type="submit"]')
 
         page.goto(PORTAL_URL, wait_until="domcontentloaded")
-        page.wait_for_load_state("networkidle", timeout=60000)
+        wait_for_network_idle_safely(page, 10000)
 
     # ---- WAIT FOR MAIN CONTENT ----
-    page.wait_for_selector("text=Last Check-In:", timeout=20000)
+    page.wait_for_selector("text=Last Check-In:", timeout=30000)
 
     # ---- EXTRACT ATTENDANCE ----
     body = page.inner_text("body")
