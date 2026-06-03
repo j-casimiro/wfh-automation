@@ -51,26 +51,30 @@ with sync_playwright() as p:
     # regardless of the server timezone (GitHub Actions uses UTC)
     context = browser.new_context(timezone_id="Asia/Manila")
     page = context.new_page()
+    page.set_default_navigation_timeout(120000)
+    page.set_default_timeout(120000)
 
     # ---- OPEN PAGE ----
-    page.goto(PORTAL_URL, wait_until="domcontentloaded")
+    page.goto(PORTAL_URL, wait_until="domcontentloaded", timeout=120000)
     wait_for_network_idle_safely(page, 10000)
 
-    # ---- LOGIN IF NEEDED ----
-    if "login" in page.url or page.locator('input[name="email"]').count() > 0:
-        page.wait_for_selector('input[name="email"]', timeout=10000)
+    # ---- WAIT FOR PAGE INITIALIZATION ----
+    # Wait up to 2 minutes for the page to render either the login screen or the dashboard
+    page.wait_for_selector('input[name="email"], text="Last Check-In:"', timeout=120000)
 
+    # ---- LOGIN IF NEEDED ----
+    if page.locator('input[name="email"]').count() > 0:
         page.fill('input[name="email"]', EMAIL)
         page.fill('input[name="password"]', PASSWORD)
 
-        with page.expect_navigation():
+        with page.expect_navigation(timeout=120000):
             page.click('button[type="submit"]')
 
-        page.goto(PORTAL_URL, wait_until="domcontentloaded")
+        page.goto(PORTAL_URL, wait_until="domcontentloaded", timeout=120000)
         wait_for_network_idle_safely(page, 10000)
 
     # ---- WAIT FOR MAIN CONTENT ----
-    page.wait_for_selector("text=Last Check-In:", timeout=30000)
+    page.wait_for_selector("text=Last Check-In:", timeout=120000)
 
     # ---- EXTRACT ATTENDANCE ----
     body = page.inner_text("body")
@@ -114,7 +118,7 @@ with sync_playwright() as p:
     # ---- CLICK BUTTON ----
     if should_click:
         button = page.locator('button:has-text("Check")')
-        button.wait_for(timeout=10000)
+        button.wait_for(timeout=30000)
 
         button.click()
         print("Clicked button")
